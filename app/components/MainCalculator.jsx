@@ -47,7 +47,8 @@ export default function MealPlanCalculator() {
                 mealDiscounts: [0, 7, 22, 27, 32],
                 dayDiscounts: { 5: 0, 6: 0, 7: 0 },
                 weekDiscounts: { 1: 0, 2: 0, 4: 0 },
-                snackDiscounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                // snackDiscounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                snackDiscounts: { 1: 20, 2: 30, 3: 40, 4: 40, 5: 40 },
                 bagFee: 0,
             })
         } else {
