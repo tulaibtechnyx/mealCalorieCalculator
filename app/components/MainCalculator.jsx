@@ -233,9 +233,9 @@ export default function MealPlanCalculator() {
 
     return (
         <div className="min-h-screen bg-gray-100 p-8 font-sans text-slate-900">
-            <div className="max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* LEFT SIDE: INPUTS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="col-span-1 bg-white p-6 rounded shadow border-t-4 border-orange-400">
                         <h3 className="font-bold mb-4">Pricing Configuration</h3>
                         <div className="grid grid-cols-1 gap-4">
@@ -403,7 +403,7 @@ export default function MealPlanCalculator() {
                 </div>
 
                 {/* RIGHT SIDE: RESULTS */}
-                <div className="bg-white p-6 rounded shadow-sm border-t-4 border-slate-400 h-fit sticky top-8">
+                <div className="col-span-1 bg-white p-6 rounded shadow-sm border-t-4 border-slate-400 h-fit sticky top-8">
                     <h2 className="text-xl font-bold mb-6">Plan Pricing Breakdown</h2>
                     <div className="space-y-3">
                         <div className="flex justify-between text-sm border-b pb-2">
@@ -472,7 +472,7 @@ export default function MealPlanCalculator() {
                                 {savedPlans.map((plan) => (
                                     <div key={plan.id}
                                         onClick={() => { setToPlan(plan.id) }}
-                                        className="flex justify-between items-center p-3 bg-gray-50 rounded border text-sm cursor-pointer">
+                                        className="flex justify-between items-center p-3 bg-gray-50 rounded border text-sm cursor-pointer flex-wrap">
                                         <div>
                                             <span className="font-bold block">{plan.label}</span>
                                             <span className="text-xs text-gray-400">
@@ -486,7 +486,8 @@ export default function MealPlanCalculator() {
                                                     second: '2-digit',
                                                     hour12: true,
                                                 }).format(new Date(plan?.date))}
-                                            </span>                                            <br />
+                                            </span>
+                                            <br />
                                             <span className="text-xs text-gray-400">{plan.data.numDays} Days x {plan.data.numWeeks} Weeks</span>
                                         </div>
                                         <div className="flex items-center gap-4">
