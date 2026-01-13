@@ -233,14 +233,12 @@ export default function MealPlanCalculator() {
 
     return (
         <div className="min-h-screen bg-gray-100 p-8 font-sans text-slate-900">
-            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-
+            <div className="max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* LEFT SIDE: INPUTS */}
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded shadow border-t-4 border-orange-400">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="col-span-1 bg-white p-6 rounded shadow border-t-4 border-orange-400">
                         <h3 className="font-bold mb-4">Pricing Configuration</h3>
-
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             {Object.entries(lookupTable.mealPrices).map(([kcal, price]) => (
                                 <div key={kcal} className="flex justify-between items-center">
                                     <span>{kcal} kcal</span>
@@ -322,8 +320,7 @@ export default function MealPlanCalculator() {
 
 
                     </div>
-
-                    <div className="bg-white p-6 rounded shadow-sm border-t-4 border-green-500">
+                    <div className="col-span-1 bg-white p-6 rounded shadow-sm border-t-4 border-green-500">
                         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">Plan Configuration</h2>
                         <div className="space-y-4">
                             {mealCalories.map((kcal, i) => (
@@ -343,8 +340,7 @@ export default function MealPlanCalculator() {
                                     </select>
                                 </div>
                             ))}
-
-                            <div className="grid grid-cols-3 gap-4 mt-4">
+                            <div className="grid grid-cols-1 gap-4 mt-4">
                                 <div className="flex flex-col">
                                     <label className="text-xs font-bold text-gray-400">SNACKS</label>
                                     <input type="number" value={numSnacks} onChange={(e) => setNumSnacks(Number(e.target.value))} className="border p-2 rounded bg-green-50" />
@@ -362,27 +358,12 @@ export default function MealPlanCalculator() {
                                     </select>
                                 </div>
                             </div>
-
-                            <div className="mt-6 pt-6 border-t flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Label (e.g. Weight Loss Plan)"
-                                    value={planLabel}
-                                    onChange={(e) => setPlanLabel(e.target.value)}
-                                    className="flex-1 border p-2 rounded text-sm"
-                                />
-                                <button
-                                    onClick={saveToHistory}
-                                    className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-700"
-                                >
-                                    Save Calculation
-                                </button>
-                            </div>
                         </div>
+
                     </div>
-                    <div className="bg-white p-4 rounded shadow border-t-4 border-purple-500 mt-6">
+                    <div className="col-span-1 md:col-span-2  bg-white p-4 rounded shadow border-t-4 border-purple-500 ">
                         <h3 className="font-bold text-lg text-purple-600 mb-4">Promo Discount</h3>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <div className="flex items-center gap-2">
                                 <label className="text-sm">Type:</label>
                                 <select
@@ -419,7 +400,6 @@ export default function MealPlanCalculator() {
 
 
                     </div>
-
                 </div>
 
                 {/* RIGHT SIDE: RESULTS */}
@@ -468,23 +448,49 @@ export default function MealPlanCalculator() {
                         </div>
                     </div>
 
+                    <div className="col-span-2 my-3 pt-6 border-t bg-white p-6 rounded shadow-sm ">
+                        <h2 className="text-xl font-bold mb-6">Save your plan</h2>
+                        <input
+                            type="text"
+                            placeholder="Plan Name"
+                            value={planLabel}
+                            onChange={(e) => setPlanLabel(e.target.value)}
+                            className="flex-1 border p-2 rounded text-sm"
+                        />
+                        <button
+                            onClick={saveToHistory}
+                            className="mt-2 bg-green-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-700"
+                        >
+                            Save Calculation
+                        </button>
+                    </div>
                     {/* STORAGE SECTION */}
                     {savedPlans.length > 0 && (
-                        <div className="bg-white p-6 rounded shadow-sm border-t-4 border-blue-400 mt-8">
-                            <h3 className="font-bold text-gray-500 mb-4 uppercase text-xs">Saved Snapshots</h3>
-                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                        <div className="bg-white p-6 rounded shadow-sm border-t-4 border-blue-400 mt-8 ">
+                            <h3 className="font-bold text-gray-500 mb-4 uppercase text-xs">Saved Snapshots Click to restore</h3>
+                            <div className="space-y-2 max-h-20 overflow-y-auto">
                                 {savedPlans.map((plan) => (
                                     <div key={plan.id}
                                         onClick={() => { setToPlan(plan.id) }}
                                         className="flex justify-between items-center p-3 bg-gray-50 rounded border text-sm cursor-pointer">
                                         <div>
                                             <span className="font-bold block">{plan.label}</span>
-                                            <span className="text-xs text-gray-400">Saved on {new Date(String(plan?.date)).toUTCString()} </span>
-                                            <br />
+                                            <span className="text-xs text-gray-400">
+                                                Saved on {new Intl.DateTimeFormat('en-PK', {
+                                                    timeZone: 'Asia/Karachi',
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    second: '2-digit',
+                                                    hour12: true,
+                                                }).format(new Date(plan?.date))}
+                                            </span>                                            <br />
                                             <span className="text-xs text-gray-400">{plan.data.numDays} Days x {plan.data.numWeeks} Weeks</span>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className="font-mono font-bold text-blue-600">AED {plan.total}</span>
+                                            <span className="font-mono font-bold text-blue-600">AED {plan.data.total}</span>
                                             <button onClick={() => removePlan(plan.id)} className="text-red-400 hover:text-red-600 font-bold">✕</button>
                                         </div>
                                     </div>
@@ -492,6 +498,7 @@ export default function MealPlanCalculator() {
                             </div>
                         </div>
                     )}
+
                 </div>
 
             </div>
