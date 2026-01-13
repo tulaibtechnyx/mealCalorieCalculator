@@ -10,6 +10,7 @@ export default function MealPlanCalculator() {
     const [promoType, setPromoType] = useState("percentage"); // "flat" | "percentage"
     const [promoValue, setPromoValue] = useState(0);
     const [promoScope, setPromoScope] = useState("both");     // "meals", "snacks", "both"
+    const [oldPricing, setoldPricing] = useState('1');     // "meals", "snacks", "both"
 
     const [lookupTable, setLookupTable] = useState({
         mealPrices: {
@@ -32,6 +33,41 @@ export default function MealPlanCalculator() {
     const [planLabel, setPlanLabel] = useState("");
 
     // Load from localStorage on mount
+    useEffect(() => {
+        if (oldPricing == '0') {
+            setLookupTable({
+                mealPrices: {
+                    200: 10.0,
+                    400: 42.0,
+                    500: 45.0,
+                    600: 48.0,
+                    700: 51.0,
+                    800: 53.0,
+                },
+                mealDiscounts: [0, 7, 22, 27, 32],
+                dayDiscounts: { 5: 0, 6: 0, 7: 0 },
+                weekDiscounts: { 1: 0, 2: 0, 4: 0 },
+                snackDiscounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                bagFee: 0,
+            })
+        } else {
+            setLookupTable({
+                mealPrices: {
+                    200: 12.0,
+                    400: 49.0,
+                    500: 53.0,
+                    600: 56.0,
+                    700: 60.0,
+                    800: 63.0,
+                },
+                mealDiscounts: [0, 20, 30, 60, 60],
+                dayDiscounts: { 5: 0, 6: 60, 7: 60 },
+                weekDiscounts: { 1: 0, 2: 0, 4: 7.5 },
+                snackDiscounts: { 1: 20, 2: 30, 3: 40, 4: 40, 5: 40 },
+                bagFee: 0.6,
+            })
+        }
+    }, [oldPricing]);
     useEffect(() => {
         const saved = localStorage.getItem('meal_plan_history');
         if (saved) setSavedPlans(JSON.parse(saved));
@@ -206,6 +242,7 @@ export default function MealPlanCalculator() {
                 total: results.grandTotal.toFixed(2),
             },
             date: new Date(),
+            pricing: oldPricing
         };
 
         const updated = [newEntry, ...savedPlans];
@@ -227,6 +264,7 @@ export default function MealPlanCalculator() {
             setPromoValue(data.promoValue || 0);
             setPromoScope(data.promoScope || "both");
             setLookupTable(data.lookupTable || lookupTable);
+            setoldPricing(data.pricing || '1')
         }
     };
 
@@ -238,6 +276,19 @@ export default function MealPlanCalculator() {
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="col-span-1 bg-white p-6 rounded shadow border-t-4 border-orange-400">
                         <h3 className="font-bold mb-4">Pricing Configuration</h3>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm">Pricing Schene:</label>
+                            <select
+                                className="border p-2 rounded bg-green-50"
+                                value={oldPricing}
+                                onChange={(e) => {
+                                    setoldPricing(e.target.value)
+                                }}
+                            >
+                                <option value={'1'}>New Pricing</option>
+                                <option value={'0'}>Old Pricing</option>
+                            </select>
+                        </div>
                         <div className="grid grid-cols-1 gap-4">
                             {Object.entries(lookupTable.mealPrices).map(([kcal, price]) => (
                                 <div key={kcal} className="flex justify-between items-center">
@@ -364,6 +415,7 @@ export default function MealPlanCalculator() {
                     <div className="col-span-1 md:col-span-2  bg-white p-4 rounded shadow border-t-4 border-purple-500 ">
                         <h3 className="font-bold text-lg text-purple-600 mb-4">Promo Discount</h3>
                         <div className="flex items-center gap-2 flex-wrap">
+
                             <div className="flex items-center gap-2">
                                 <label className="text-sm">Type:</label>
                                 <select
