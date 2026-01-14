@@ -108,7 +108,7 @@ export default function PlanAdjustment({
         return { ...remainingValues, dailyDifference, subtotalAdjustment, promoAdjustment, netAdjustment, finalStatus };
     }, [newMeals, newSnacks, newDays, newWeeks, daysConsumed, oldPlan, lookupTable, promoType, promoValue, promoScope, remainingValues]);
 
-    function calculateAdjustment({
+    function calculateAdjustment(
         oldMeals,
         newMeals,
         oldSnacks,
@@ -117,7 +117,7 @@ export default function PlanAdjustment({
         promoType,
         promoValue,
         promoScope,
-    }) {
+    ) {
         // === MEALS ADJUSTMENT ===
         let mealsAdjustment = 0;
         oldMeals.forEach((oldKcal, idx) => {
@@ -172,19 +172,19 @@ export default function PlanAdjustment({
                         : "NO PRICE CHANGE",
         };
     }
+    console.log("mealCalories",mealCalories)
+    const adjustment2 = calculateAdjustment(
+        mealCalories ,
+        newMeals,
+        numSnacks,
+        newSnacks,
+        lookupTable,
+        promoType,
+        promoValue,
+        promoScope,
+    );
 
-    // const adjustment2 = calculateAdjustment({
-    //     mealCalories,
-    //     newMeals,
-    //     numSnacks,
-    //     newSnacks,
-    //     lookupTable,
-    //     promoType: promoType,
-    //     promoValue: promoValue,
-    //     promoScope: promoScope,
-    // });
-
-    // console.log(adjustment2);
+    console.log(adjustment2);
     return (
         <div className="col-span-2 md:col-span-1 bg-white p-6 rounded  shadow border-t-4 border-indigo-600 ">
             <h2 className="font-bold text-lg mb-4">Plan Adjustment</h2>

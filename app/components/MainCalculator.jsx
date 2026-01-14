@@ -371,7 +371,12 @@ export default function MealPlanCalculator() {
                             <div className="grid grid-cols-1 gap-4 mt-4">
                                 <div className="flex flex-col">
                                     <label className="text-xs font-bold text-gray-400">SNACKS</label>
-                                    <input type="number" value={numSnacks} onChange={(e) => setNumSnacks(Number(e.target.value))} className="border p-2 rounded bg-green-50" />
+                                    <select
+                                        value={numSnacks}
+                                        onChange={(e) => setNumSnacks(Number(e.target.value))}
+                                        className="border p-2 bg-green-50 rounded w-full">
+                                        {[0, 1, 2, 3, 4, 5].map(d => <option key={d} value={d}>{d}</option>)}
+                                    </select>
                                 </div>
                                 <div className="flex flex-col">
                                     <label className="text-xs font-bold text-gray-400">DAYS</label>
