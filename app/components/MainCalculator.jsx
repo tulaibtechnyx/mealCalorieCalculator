@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useMemo, useEffect } from 'react';
 import { LOOKUP_TABLE } from '../constants';
+import PlanAdjustmentCalculator from './PlanAdjustmentCalculator';
 
 export default function MealPlanCalculator() {
     const [mealCalories, setMealCalories] = useState([800, 800, 0, 0, 0]);
@@ -195,36 +196,11 @@ export default function MealPlanCalculator() {
         lookupTable,
     ]);
 
-    // Persistence Methods
-    // const saveToHistory = () => {
-    //     const newEntry = {
-    //         id: Date.now(),
-    //         label: planLabel || `Plan ${savedPlans.length + 1}`,
-    //         data: { mealCalories, numSnacks, numDays, numWeeks, total: results.grandTotal.toFixed(2) },
-    //         date: new Date()
-    //     };
-    //     const updated = [newEntry, ...savedPlans];
-    //     setSavedPlans(updated);
-    //     localStorage.setItem('meal_plan_history', JSON.stringify(updated));
-    //     setPlanLabel("");
-    // };
-
     const removePlan = (id) => {
         const updated = savedPlans.filter(p => p.id !== id);
         setSavedPlans(updated);
         localStorage.setItem('meal_plan_history', JSON.stringify(updated));
     };
-
-    // const setToPlan = (id) => {
-    //     const foundPLan = savedPlans.find(p => p.id == id);
-    //     console.log("foundPLan", foundPLan)
-    //     if (foundPLan) {
-    //         setMealCalories(foundPLan?.data?.mealCalories)
-    //         setNumSnacks(foundPLan?.data?.numSnacks)
-    //         setNumDays(foundPLan?.data?.numDays)
-    //         setNumWeeks(foundPLan?.data?.numWeeks)
-    //     }
-    // };
 
     // Save full plan to history
     const saveToHistory = () => {
@@ -272,9 +248,9 @@ export default function MealPlanCalculator() {
 
     return (
         <div className="min-h-screen bg-gray-100 p-8 font-sans text-slate-900">
-            <div className="max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="max-w-8xl mx-auto gap-8 grid grid-cols-1 md:grid-cols-2 ">
                 {/* LEFT SIDE: INPUTS */}
-                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="col-span-1 bg-white p-6 rounded shadow border-t-4 border-orange-400">
                         <h3 className="font-bold mb-4">Pricing Configuration</h3>
                         <div className="flex items-center gap-2">
@@ -413,95 +389,95 @@ export default function MealPlanCalculator() {
                         </div>
 
                     </div>
-                    <div className="col-span-1 md:col-span-2  bg-white p-4 rounded shadow border-t-4 border-purple-500 ">
-                        <h3 className="font-bold text-lg text-purple-600 mb-4">Promo Discount</h3>
-                        <div className="flex items-center gap-2 flex-wrap">
-
-                            <div className="flex items-center gap-2">
-                                <label className="text-sm">Type:</label>
-                                <select
-                                    className="border p-2 rounded bg-green-50"
-                                    value={promoType}
-                                    onChange={(e) => setPromoType(e.target.value)}
-                                >
-                                    <option value="percentage">Percentage (%)</option>
-                                    <option value="flat">Flat Amount</option>
-                                </select>
+                    <div className="col-span-1 bg-white p-6 rounded shadow-sm border-t-4 border-green-500">
+                        <h2 className="text-xl font-bold mb-6">Plan Pricing Breakdown</h2>
+                        <div className="space-y-3">
+                            <div className="flex justify-between text-sm border-b pb-2">
+                                <span>Daily Meal Cost</span>
+                                <span className="font-mono font-bold">AED {results.dailyMealCost.toFixed(2)}</span>
                             </div>
-                            <div className="">
-                                <label className="text-sm">Apply On:</label>
-                                <select
-                                    className="border p-2 rounded bg-green-50"
-                                    value={promoScope}
-                                    onChange={(e) => setPromoScope(e.target.value)}
-                                >
-                                    <option value="both">Everything</option>
-                                    <option value="meals">Meals Only</option>
-                                    <option value="snacks">Snacks Only</option>
-                                </select>
+                            <div className="flex justify-between text-sm border-b pb-2">
+                                <span>Total Snack Cost</span>
+                                <span className="font-mono font-bold">AED {results.dailySnackCost.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm border-b pb-2">
+                                <span>Total Daily</span>
+                                <span className="font-mono font-bold">AED {results.totalDaily.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm border-b pb-2">
+                                <span>Total Sub Total</span>
+                                <span className="font-mono font-bold">AED {results.subtotalPlan.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-500 italic">
+                                <span>Day Discount (Formula Logic)</span>
+                                <span>- AED {results.dayDiscAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-500 italic">
+                                <span>Day priceAfterDayDisc (Formula Logic)</span>
+                                <span>- AED {results.priceAfterDayDisc.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-500 italic">
+                                <span>Week Discount ({results.weekDiscPercent}%)</span>
+                                <span>- AED {results.weekDiscAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-blue-500">
+                                <span>Bag Fee (Total)</span>
+                                <span>+ AED {results.totalBagFee.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-500 italic">
+                                <span>Promo Discount</span>
+                                <span>- AED {results.promoDiscountAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="mt-8 p-6 bg-slate-900 text-white rounded-xl shadow-lg">
+                                <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Final Grand Total</span>
+                                <span className="text-4xl font-black text-green-400">AED {results.grandTotal.toFixed(2)}</span>
                             </div>
                         </div>
-                        <div className="mt-3">
-                            <label className="text-sm">Value:</label>
-                            <input
-                                type="number"
-                                className="border p-2 rounded bg-green-50"
-                                value={promoValue}
-                                onChange={(e) => setPromoValue(Number(e.target.value))}
-                            />
+                    </div>
+                    <div className='col-span-1 md:col-span-3 bg-white p-4 rounded shadow border-t-4 border-purple-500 grid grid-cols-2'>
+                        <div className=" ">
+                            <h3 className="font-bold text-lg text-purple-600 mb-4">Promo Discount</h3>
+                            <div className="flex items-center gap-2 flex-wrap">
+
+                                <div className="flex items-center gap-2">
+                                    <label className="text-sm">Type:</label>
+                                    <select
+                                        className="border p-2 rounded bg-green-50"
+                                        value={promoType}
+                                        onChange={(e) => setPromoType(e.target.value)}
+                                    >
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="flat">Flat Amount</option>
+                                    </select>
+                                </div>
+                                <div className="">
+                                    <label className="text-sm">Apply On:</label>
+                                    <select
+                                        className="border p-2 rounded bg-green-50"
+                                        value={promoScope}
+                                        onChange={(e) => setPromoScope(e.target.value)}
+                                    >
+                                        <option value="both">Everything</option>
+                                        <option value="meals">Meals Only</option>
+                                        <option value="snacks">Snacks Only</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mt-3">
+                                <label className="text-sm">Value:</label>
+                                <input
+                                    type="number"
+                                    className="border p-2 rounded bg-green-50"
+                                    value={promoValue}
+                                    onChange={(e) => setPromoValue(Number(e.target.value))}
+                                />
+                            </div>
                         </div>
-
-
                     </div>
                 </div>
-
                 {/* RIGHT SIDE: RESULTS */}
-                <div className="col-span-1 bg-white p-6 rounded shadow-sm border-t-4 border-slate-400 h-fit sticky top-8">
-                    <h2 className="text-xl font-bold mb-6">Plan Pricing Breakdown</h2>
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-sm border-b pb-2">
-                            <span>Daily Meal Cost</span>
-                            <span className="font-mono font-bold">AED {results.dailyMealCost.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-b pb-2">
-                            <span>Total Snack Cost</span>
-                            <span className="font-mono font-bold">AED {results.dailySnackCost.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-b pb-2">
-                            <span>Total Daily</span>
-                            <span className="font-mono font-bold">AED {results.totalDaily.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-b pb-2">
-                            <span>Total Sub Total</span>
-                            <span className="font-mono font-bold">AED {results.subtotalPlan.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-red-500 italic">
-                            <span>Day Discount (Formula Logic)</span>
-                            <span>- AED {results.dayDiscAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-red-500 italic">
-                            <span>Day priceAfterDayDisc (Formula Logic)</span>
-                            <span>- AED {results.priceAfterDayDisc.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-red-500 italic">
-                            <span>Week Discount ({results.weekDiscPercent}%)</span>
-                            <span>- AED {results.weekDiscAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-blue-500">
-                            <span>Bag Fee (Total)</span>
-                            <span>+ AED {results.totalBagFee.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-red-500 italic">
-                            <span>Promo Discount</span>
-                            <span>- AED {results.promoDiscountAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="mt-8 p-6 bg-slate-900 text-white rounded-xl shadow-lg">
-                            <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Final Grand Total</span>
-                            <span className="text-4xl font-black text-green-400">AED {results.grandTotal.toFixed(2)}</span>
-                        </div>
-                    </div>
-
-                    <div className="col-span-2 my-3 pt-6 border-t bg-white p-6 rounded shadow-sm ">
+                <div className="col-span-2 md:col-span-1 bg-white p-6 rounded shadow-sm border-t-4 border-slate-400 ">
+                    <div className="col-span-2 my-3 pt-2 bg-white p-6 rounded shadow-sm ">
                         <h2 className="text-xl font-bold mb-6">Save your plan</h2>
                         <input
                             type="text"
@@ -521,7 +497,7 @@ export default function MealPlanCalculator() {
                     {savedPlans.length > 0 && (
                         <div className="bg-white p-6 rounded shadow-sm border-t-4 border-blue-400 mt-8 ">
                             <h3 className="font-bold text-gray-500 mb-4 uppercase text-xs">Saved Snapshots Click to restore</h3>
-                            <div className="space-y-2 max-h-20 overflow-y-auto">
+                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
                                 {savedPlans.map((plan) => (
                                     <div key={plan.id}
                                         onClick={() => { setToPlan(plan.id) }}
@@ -554,7 +530,16 @@ export default function MealPlanCalculator() {
                     )}
 
                 </div>
-
+                <PlanAdjustmentCalculator
+                    mealCalories={mealCalories}
+                    numSnacks={numSnacks}
+                    numDays={numDays}
+                    numWeeks={numWeeks}
+                    lookupTable={lookupTable}
+                    promoType={promoType}
+                    promoValue={promoValue}
+                    promoScope={promoScope}
+                />
             </div>
         </div>
     );
