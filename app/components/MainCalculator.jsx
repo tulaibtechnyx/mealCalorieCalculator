@@ -12,6 +12,7 @@ export default function MealPlanCalculator() {
     const [promoValue, setPromoValue] = useState(0);
     const [promoScope, setPromoScope] = useState("both");     // "meals", "snacks", "both"
     const [oldPricing, setoldPricing] = useState('1');     // "meals", "snacks", "both"
+    const [snackOldPricing, setsnackOldPricing] = useState('1');     // "meals", "snacks", "both"
 
     const [lookupTable, setLookupTable] = useState({
         mealPrices: {
@@ -70,6 +71,21 @@ export default function MealPlanCalculator() {
             })
         }
     }, [oldPricing]);
+
+    useEffect(() => {
+        if (snackOldPricing == '0') {
+            setLookupTable({
+                ...lookupTable,
+                snackDiscounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+            })
+        } else {
+            setLookupTable({
+                ...lookupTable,
+                snackDiscounts: { 1: 20, 2: 30, 3: 40, 4: 40, 5: 40 },
+            })
+        }
+    }, [snackOldPricing]);
+
     useEffect(() => {
         const saved = localStorage.getItem('meal_plan_history');
         if (saved) setSavedPlans(JSON.parse(saved));
@@ -246,6 +262,7 @@ export default function MealPlanCalculator() {
     };
 
 
+
     return (
         <div className="min-h-screen bg-gray-100 p-8 font-sans text-slate-900">
             <div className="max-w-8xl mx-auto gap-8 grid grid-cols-1 md:grid-cols-2 ">
@@ -253,18 +270,34 @@ export default function MealPlanCalculator() {
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="col-span-1 bg-white p-6 rounded shadow border-t-4 border-orange-400">
                         <h3 className="font-bold mb-4">Pricing Configuration</h3>
+
                         <div className="flex items-center gap-2">
-                            <label className="text-sm">Pricing Schene:</label>
-                            <select
-                                className="border p-2 rounded bg-green-50"
-                                value={oldPricing}
-                                onChange={(e) => {
-                                    setoldPricing(e.target.value)
-                                }}
-                            >
-                                <option value={'1'}>New Pricing</option>
-                                <option value={'0'}>Old Pricing</option>
-                            </select>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm">Pricing Schene:</label>
+                                <select
+                                    className="border p-2 rounded bg-green-50"
+                                    value={oldPricing}
+                                    onChange={(e) => {
+                                        setoldPricing(e.target.value)
+                                    }}
+                                >
+                                    <option value={'1'}>New Pricing</option>
+                                    <option value={'0'}>Old Pricing</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm">Snack pricing:</label>
+                                <select
+                                    className="border p-2 rounded bg-green-50"
+                                    value={snackOldPricing}
+                                    onChange={(e) => {
+                                        setsnackOldPricing(e.target.value)
+                                    }}
+                                >
+                                    <option value={'0'}>Old Pricing</option>
+                                    <option value={'1'}>New Pricing</option>
+                                </select>
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             {Object.entries(lookupTable.mealPrices).map(([kcal, price]) => (
