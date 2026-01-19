@@ -44,7 +44,7 @@ export default function MealPlanCalculator() {
                     500: 45.0,
                     600: 48.0,
                     700: 51.0,
-                    800: 53.0,
+                    800: 54.0,
                 },
                 mealDiscounts: [0, 7, 22, 27, 32],
                 dayDiscounts: { 5: 0, 6: 0, 7: 0 },
@@ -299,7 +299,32 @@ export default function MealPlanCalculator() {
                                 </select>
                             </div>
                         </div>
+                        <div>
+                            <h4 className="font-bold mb-3 text-sm text-gray-600 mt-6  ">Meal and Snacks discounts (AED)</h4>
+                            <div className='grid grid-cols-2'>
+                                <div>
+                                    {lookupTable?.mealDiscounts?.map((disc, index) => (
+                                        <div key={index} className="flex flex-col">
+                                            <label className="text-xs font-bold text-gray-400">
+                                                Meal {index + 1} ({disc} %)
+                                            </label>
+                                        </div>
+                                    ))}
+
+                                </div>
+                                <div>
+                                    {Object.entries(lookupTable?.snackDiscounts)?.map((disc, index) => (
+                                        <div key={index} className="flex flex-col">
+                                            <label className="text-xs font-bold text-gray-400">
+                                                Snack {index + 1} ({disc?.slice(1)} %)
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                         <div className="grid grid-cols-1 gap-4">
+                            <h4 className="font-bold mb-3 text-sm text-gray-600 mt-6">Pricing w.r.t to calories(AED)</h4>
                             {Object.entries(lookupTable.mealPrices).map(([kcal, price]) => (
                                 <div key={kcal} className="flex justify-between items-center">
                                     <span>{kcal} kcal</span>
