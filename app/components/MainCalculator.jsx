@@ -8,6 +8,7 @@ export default function MealPlanCalculator() {
     const [numSnacks, setNumSnacks] = useState(1);
     const [numDays, setNumDays] = useState(5);
     const [numWeeks, setNumWeeks] = useState(4);
+    const [SurchargePercentage, setSurchargePercentage] = useState(null);
     const [promoType, setPromoType] = useState("percentage"); // "flat" | "percentage"
     const [promoValue, setPromoValue] = useState(0);
     const [promoScope, setPromoScope] = useState("both");     // "meals", "snacks", "both"
@@ -142,8 +143,10 @@ export default function MealPlanCalculator() {
                 dayDiscAmount = (component6 + component7) * numWeeks;
             }
         }
-        const priceAfterDayDisc = subtotalPlan - dayDiscAmount;
-
+        const priceAfterDayDiscOnly = subtotalPlan - dayDiscAmount;
+        const priceAfterDayDiscNSurcharge = priceAfterDayDiscOnly * (1 + SurchargePercentage / 100);
+        const SurchargeAmount = priceAfterDayDiscOnly - priceAfterDayDiscNSurcharge;
+        const priceAfterDayDisc = priceAfterDayDiscNSurcharge;
         const weekDiscPercent = lookupTable.weekDiscounts[numWeeks] / 100;
         const weekDiscAmount = priceAfterDayDisc * weekDiscPercent;
 
@@ -195,7 +198,9 @@ export default function MealPlanCalculator() {
             totalDaily,
             subtotalPlan,
             dayDiscAmount,
-            priceAfterDayDisc,
+            SurchargeAmount: SurchargeAmount,
+            priceAfterDayDisc: priceAfterDayDiscOnly,
+            SurchargePercentage: priceAfterDayDiscNSurcharge,
             weekDiscAmount,
             totalBagFee,
             promoDiscountAmount,
@@ -210,6 +215,7 @@ export default function MealPlanCalculator() {
         promoValue,
         promoScope,
         lookupTable,
+        SurchargePercentage
     ]);
 
     const removePlan = (id) => {
@@ -448,6 +454,17 @@ export default function MealPlanCalculator() {
                                         {[1, 2, 4].map(w => <option key={w} value={w}>{w}</option>)}
                                     </select>
                                 </div>
+                                <div className="flex flex-col">
+                                    <label className="text-xs font-bold text-gray-400">Sur charge Percentage (%)</label>
+                                    <input
+                                        type="number"
+                                        value={SurchargePercentage}
+                                        onChange={(e) =>
+                                            setSurchargePercentage(e.target.value)
+                                        }
+                                        className="border p-2 rounded w-32"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -476,8 +493,16 @@ export default function MealPlanCalculator() {
                                 <span>- AED {results.dayDiscAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
-                                <span>Day priceAfterDayDisc (Formula Logic)</span>
+                                <span>Total price: After Day Disc (Formula Logic)</span>
                                 <span>- AED {results.priceAfterDayDisc.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-500 italic">
+                                <span>Surcharge Amount (Formula Logic)</span>
+                                <span>- AED {results.SurchargeAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-red-500 italic">
+                                <span>Total price: After Surcharge (Formula Logic)</span>
+                                <span>- AED {results.SurchargePercentage.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Week Discount ({results.weekDiscPercent}%)</span>
