@@ -8,7 +8,7 @@ export default function MealPlanCalculator() {
     const [numSnacks, setNumSnacks] = useState(1);
     const [numDays, setNumDays] = useState(5);
     const [numWeeks, setNumWeeks] = useState(4);
-    const [SurchargePercentage, setSurchargePercentage] = useState(null);
+    const [SurchargePercentage, setSurchargePercentage] = useState(0);
     const [reductionPer, setreductionPer] = useState(12.5);
     const [markupPer, setmarkupPer] = useState(25);
     const [promoType, setPromoType] = useState("percentage"); // "flat" | "percentage"
@@ -97,139 +97,300 @@ export default function MealPlanCalculator() {
         localStorage.setItem('lookup_table', JSON.stringify(lookupTable));
     }, [lookupTable]);
 
-    const results = useMemo(() => {
-        const mealCosts = mealCalories.map((kcal, index) => {
-            if (kcal === 0) return 0;
-            const basePrice = lookupTable.mealPrices[kcal] || 0;
-            const discount = lookupTable.mealDiscounts[index] / 100;
+    // const results = useMemo(() => {
+    //     const mealCosts = mealCalories.map((kcal, index) => {
+    //         if (kcal === 0) return 0;
+    //         const basePrice = lookupTable.mealPrices[kcal] || 0;
+    //         const discount = lookupTable.mealDiscounts[index] / 100;
+    //         return basePrice * (1 - discount);
+    //     });
+    //     const baseMealCosts = mealCalories.map((kcal, index) => {
+    //         if (kcal === 0) return 0;
+    //         const basePrice = lookupTable.mealPrices[kcal] || 0;
+    //         return basePrice;
+    //     });
+    //     const dailyMealCost = mealCosts.reduce((a, b) => a + b, 0);
+    //     const dailyBaseMealCost = baseMealCosts.reduce((a, b) => a + b, 0);
+
+    //     const dailySnackCostFunc = () => {
+    //         if (numSnacks === 0) return 0;
+
+    //         let total = 0;
+    //         const snackBase = lookupTable.mealPrices[200];
+
+    //         for (let i = 1; i <= numSnacks; i++) {
+    //             const discountPercent = lookupTable.snackDiscounts[i] || 0;
+    //             const discountedPrice = snackBase * (1 - discountPercent / 100);
+    //             total += discountedPrice;
+    //         }
+
+    //         return total;
+    //     }
+    //     const dailySnackBaseCostFunc = () => {
+    //         if (numSnacks === 0) return 0;
+
+    //         let total = 0;
+    //         const snackBase = lookupTable.mealPrices[200];
+
+    //         for (let i = 1; i <= numSnacks; i++) {
+    //             const discountedPrice = snackBase;
+    //             total += discountedPrice;
+    //         }
+
+    //         return total;
+    //     }
+    //     const dailySnackCost = dailySnackCostFunc()
+    //     const dailyBaseSnackCost = dailySnackBaseCostFunc()
+    //     const totalDaily = dailyMealCost + dailySnackCost;
+    //     const totalBaseDaily = dailyBaseMealCost + dailyBaseSnackCost;
+
+    //     // day discount logic unchanged...
+
+    //     const subtotalPlan = totalDaily * numDays * numWeeks;
+    //     const subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
+    //     let dayDiscAmount = 0;
+    //     if (numDays >= 6) {
+    //         // VLOOKUP values from H2:I4
+    //         const rate6 = (lookupTable.dayDiscounts[6] || 0) / 100;
+    //         const rate7 = (lookupTable.dayDiscounts[7] || 0) / 100;
+
+    //         const component6 = totalDaily * rate6; // 123 * 0.6 = 73.80
+    //         const component7 = totalDaily * rate7; // 123 * 0.6 = 73.80
+
+    //         if (numDays === 6) {
+    //             // (C15 * rate6) * numWeeks
+    //             dayDiscAmount = component6 * numWeeks;
+    //         } else if (numDays === 7) {
+    //             // The formula: (comp6 * (C8=6)) + (comp6 * (C8=7)) + (comp7 * (C8=7))
+    //             // For C8=7, it becomes: (0) + (comp6) + (comp7)
+    //             // Result: (73.80 + 73.80) * 4 weeks = 147.60 * 4 = 590.40
+    //             dayDiscAmount = (component6 + component7) * numWeeks;
+    //         }
+    //     }
+    //     const priceAfterDayDiscOnly = subtotalPlan - dayDiscAmount;
+    //     const priceAfterDayDiscNSurcharge = priceAfterDayDiscOnly * (1 + SurchargePercentage / 100);
+    //     const SurchargeAmount = priceAfterDayDiscOnly - priceAfterDayDiscNSurcharge;
+    //     const priceAfterDayDisc = priceAfterDayDiscNSurcharge;
+    //     const weekDiscPercent = lookupTable.weekDiscounts[numWeeks] / 100;
+    //     const weekDiscAmount = priceAfterDayDisc * weekDiscPercent;
+
+    //     const priceAfterWeekDisc = priceAfterDayDisc - weekDiscAmount;
+
+    //     const totalBagFee = (numDays * numWeeks) * lookupTable.bagFee;
+    //     // let subtotalWithDiscountLogic = (subtotalBasePlan - totalBagFee);
+    //     let subtotalWithDiscountLogic = (priceAfterDayDiscOnly);
+    //     const reductionCoeff = 1 - (reductionPer / 100);
+    //     const markupCoeff = 1 - (markupPer / 100);
+    //     const anchoredBase = ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff;
+    //     const savings = anchoredBase - priceAfterWeekDisc - totalBagFee;
+
+
+    //     // console.log("bag", subtotalWithDiscountLogic)
+    //     // subtotalWithDiscountLogic = subtotalWithDiscountLogic * (1 - 12.5 / 100);
+    //     // console.log("12.5", subtotalWithDiscountLogic)
+    //     // subtotalWithDiscountLogic += totalBagFee;
+    //     // console.log("bag", subtotalWithDiscountLogic)
+    //     // subtotalWithDiscountLogic = subtotalWithDiscountLogic * (1 + 33.33 / 100);
+    //     // console.log("33.33", subtotalWithDiscountLogic)
+
+    //     // ====== PROMO DISCOUNT CALCULATION ======
+
+    //     let promoDiscountAmount = 0;
+
+    //     // Base amounts
+    //     const mealsTotal = dailyMealCost * numDays * numWeeks;
+    //     const snacksTotal = dailySnackCost * numDays * numWeeks;
+    //     const subtotalBeforePromo = priceAfterWeekDisc;
+    //     let grandTotal = priceAfterWeekDisc;
+
+    //     // compute promo discount
+    //     if (promoValue > 0) {
+    //         if (promoScope === "meals") {
+    //             if (promoType === "percentage") {
+    //                 promoDiscountAmount = (mealsTotal * promoValue) / 100;
+    //             } else {
+    //                 promoDiscountAmount = promoValue;
+    //             }
+    //         } else if (promoScope === "snacks") {
+    //             if (promoType === "percentage") {
+    //                 promoDiscountAmount = (snacksTotal * promoValue) / 100;
+    //             } else {
+    //                 promoDiscountAmount = promoValue;
+    //             }
+    //         } else {
+    //             // promo applies to total
+    //             if (promoType === "percentage") {
+    //                 promoDiscountAmount = (subtotalBeforePromo * promoValue) / 100;
+    //             } else {
+    //                 promoDiscountAmount = promoValue;
+    //             }
+    //         }
+    //     }
+
+    //     // new grand total
+    //     grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
+
+    //     return {
+    //         mealCosts,
+    //         dailyMealCost,
+    //         dailySnackCost,
+    //         totalDaily,
+    //         subtotalPlan,
+    //         dayDiscAmount,
+    //         SurchargeAmount: SurchargeAmount,
+    //         priceAfterDayDisc: priceAfterDayDiscOnly,
+    //         SurchargePercentage: priceAfterDayDiscNSurcharge,
+    //         weekDiscAmount,
+    //         totalBagFee,
+    //         promoDiscountAmount,
+    //         grandTotal,
+    //         subtotalWithDiscountLogic,
+    //         subtotalBasePlan,
+    //         dailyBaseMealCost,
+    //         dailyBaseSnackCost,
+    //         totalBaseDaily,
+    //         savings,
+    //         anchoredBase
+    //     };
+    // }, [
+    //     mealCalories,
+    //     numSnacks,
+    //     numDays,
+    //     numWeeks,
+    //     promoType,
+    //     promoValue,
+    //     promoScope,
+    //     lookupTable,
+    //     SurchargePercentage,
+    //     reductionPer,
+    //     markupPer
+    // ]);
+
+    /**
+ * Calculates meal plan costs and discounts.
+ * Handles null/undefined inputs by defaulting to 0 or empty structures.
+ */
+    /**
+     * Calculates meal plan costs with full null-safety for all lookup tables and inputs.
+     */
+    const calculateMealPlan = (params = {}) => {
+        // 1. Destructure with strict defaults to handle null/undefined inputs
+        const {
+            mealCalories = [],
+            numSnacks = 0,
+            numDays = 0,
+            numWeeks = 0,
+            promoType = "percentage",
+            promoValue = 0,
+            promoScope = "total",
+            lookupTable = {},
+            SurchargePercentage = 0,
+            reductionPer = 0,
+            markupPer = 0
+        } = params;
+
+        // 2. Safe access to nested lookupTable properties
+        const prices = lookupTable?.mealPrices || {};
+        const mealDiscounts = lookupTable?.mealDiscounts || {};
+        const snackDiscounts = lookupTable?.snackDiscounts || {};
+        const dayDiscounts = lookupTable?.dayDiscounts || {};
+        const weekDiscounts = lookupTable?.weekDiscounts || {};
+        const bagFeePerDay = lookupTable?.bagFee || 0;
+
+        // 3. MEAL CALCULATIONS
+        const mealCosts = (mealCalories || []).map((kcal, index) => {
+            if (!kcal || kcal === 0) return 0;
+            const basePrice = prices[kcal] || 0;
+            const discount = (mealDiscounts[index] || 0) / 100;
             return basePrice * (1 - discount);
         });
-        const baseMealCosts = mealCalories.map((kcal, index) => {
-            if (kcal === 0) return 0;
-            const basePrice = lookupTable.mealPrices[kcal] || 0;
-            return basePrice;
+
+        const baseMealCosts = (mealCalories || []).map((kcal) => {
+            if (!kcal || kcal === 0) return 0;
+            return prices[kcal] || 0;
         });
+
         const dailyMealCost = mealCosts.reduce((a, b) => a + b, 0);
         const dailyBaseMealCost = baseMealCosts.reduce((a, b) => a + b, 0);
 
-        const dailySnackCostFunc = () => {
-            if (numSnacks === 0) return 0;
-
+        // 4. SNACK CALCULATIONS (Consolidated for cleaner logic)
+        const getSnackTotal = (isBase = false) => {
+            if (!numSnacks || numSnacks <= 0) return 0;
             let total = 0;
-            const snackBase = lookupTable.mealPrices[200];
-
+            const snackBase = prices[200] || 0;
             for (let i = 1; i <= numSnacks; i++) {
-                const discountPercent = lookupTable.snackDiscounts[i] || 0;
-                const discountedPrice = snackBase * (1 - discountPercent / 100);
-                total += discountedPrice;
+                const discountPercent = isBase ? 0 : (snackDiscounts[i] || 0);
+                total += snackBase * (1 - discountPercent / 100);
             }
-
             return total;
-        }
-        const dailySnackBaseCostFunc = () => {
-            if (numSnacks === 0) return 0;
+        };
 
-            let total = 0;
-            const snackBase = lookupTable.mealPrices[200];
+        const dailySnackCost = getSnackTotal(false);
+        const dailyBaseSnackCost = getSnackTotal(true);
 
-            for (let i = 1; i <= numSnacks; i++) {
-                const discountedPrice = snackBase;
-                total += discountedPrice;
-            }
-
-            return total;
-        }
-        const dailySnackCost = dailySnackCostFunc()
-        const dailyBaseSnackCost = dailySnackBaseCostFunc()
+        // 5. TOTALS & SUBTOTALS
         const totalDaily = dailyMealCost + dailySnackCost;
         const totalBaseDaily = dailyBaseMealCost + dailyBaseSnackCost;
-
-        // day discount logic unchanged...
-
         const subtotalPlan = totalDaily * numDays * numWeeks;
         const subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
+
+        // 6. DAY DISCOUNT LOGIC
         let dayDiscAmount = 0;
         if (numDays >= 6) {
-            // VLOOKUP values from H2:I4
-            const rate6 = (lookupTable.dayDiscounts[6] || 0) / 100;
-            const rate7 = (lookupTable.dayDiscounts[7] || 0) / 100;
-
-            const component6 = totalDaily * rate6; // 123 * 0.6 = 73.80
-            const component7 = totalDaily * rate7; // 123 * 0.6 = 73.80
+            const rate6 = (dayDiscounts[6] || 0) / 100;
+            const rate7 = (dayDiscounts[7] || 0) / 100;
+            const component6 = totalDaily * rate6;
+            const component7 = totalDaily * rate7;
 
             if (numDays === 6) {
-                // (C15 * rate6) * numWeeks
                 dayDiscAmount = component6 * numWeeks;
             } else if (numDays === 7) {
-                // The formula: (comp6 * (C8=6)) + (comp6 * (C8=7)) + (comp7 * (C8=7))
-                // For C8=7, it becomes: (0) + (comp6) + (comp7)
-                // Result: (73.80 + 73.80) * 4 weeks = 147.60 * 4 = 590.40
                 dayDiscAmount = (component6 + component7) * numWeeks;
             }
         }
+
+        // 7. SURCHARGES & WEEK DISCOUNTS
         const priceAfterDayDiscOnly = subtotalPlan - dayDiscAmount;
         const priceAfterDayDiscNSurcharge = priceAfterDayDiscOnly * (1 + SurchargePercentage / 100);
-        const SurchargeAmount = priceAfterDayDiscOnly - priceAfterDayDiscNSurcharge;
-        const priceAfterDayDisc = priceAfterDayDiscNSurcharge;
-        const weekDiscPercent = lookupTable.weekDiscounts[numWeeks] / 100;
-        const weekDiscAmount = priceAfterDayDisc * weekDiscPercent;
 
-        const priceAfterWeekDisc = priceAfterDayDisc - weekDiscAmount;
+        // Correcting the SurchargeAmount logic to ensure it reflects the added cost
+        const SurchargeAmount = priceAfterDayDiscNSurcharge - priceAfterDayDiscOnly;
 
-        const totalBagFee = (numDays * numWeeks) * lookupTable.bagFee;
-        // let subtotalWithDiscountLogic = (subtotalBasePlan - totalBagFee);
-        let subtotalWithDiscountLogic = (priceAfterDayDiscOnly);
+        const weekDiscPercent = (weekDiscounts[numWeeks] || 0) / 100;
+        const weekDiscAmount = priceAfterDayDiscNSurcharge * weekDiscPercent;
+        const priceAfterWeekDisc = priceAfterDayDiscNSurcharge - weekDiscAmount;
+
+        // 8. FEES & ANCHORED BASE (MARKUP/REDUCTION)
+        const totalBagFee = (numDays * numWeeks) * bagFeePerDay;
+        const subtotalWithDiscountLogic = priceAfterDayDiscOnly;
         const reductionCoeff = 1 - (reductionPer / 100);
         const markupCoeff = 1 - (markupPer / 100);
-        const anchoredBase = ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff;
+
+        // Safety check for division by zero
+        const anchoredBase = markupCoeff !== 0
+            ? ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff
+            : 0;
+
         const savings = anchoredBase - priceAfterWeekDisc - totalBagFee;
 
-
-        // console.log("bag", subtotalWithDiscountLogic)
-        // subtotalWithDiscountLogic = subtotalWithDiscountLogic * (1 - 12.5 / 100);
-        // console.log("12.5", subtotalWithDiscountLogic)
-        // subtotalWithDiscountLogic += totalBagFee;
-        // console.log("bag", subtotalWithDiscountLogic)
-        // subtotalWithDiscountLogic = subtotalWithDiscountLogic * (1 + 33.33 / 100);
-        // console.log("33.33", subtotalWithDiscountLogic)
-
-        // ====== PROMO DISCOUNT CALCULATION ======
-
+        // 9. PROMO DISCOUNT CALCULATION
         let promoDiscountAmount = 0;
-
-        // Base amounts
         const mealsTotal = dailyMealCost * numDays * numWeeks;
         const snacksTotal = dailySnackCost * numDays * numWeeks;
-        const subtotalBeforePromo = priceAfterWeekDisc;
-        let grandTotal = priceAfterWeekDisc;
 
-        // compute promo discount
         if (promoValue > 0) {
             if (promoScope === "meals") {
-                if (promoType === "percentage") {
-                    promoDiscountAmount = (mealsTotal * promoValue) / 100;
-                } else {
-                    promoDiscountAmount = promoValue;
-                }
+                promoDiscountAmount = (promoType === "percentage") ? (mealsTotal * promoValue) / 100 : promoValue;
             } else if (promoScope === "snacks") {
-                if (promoType === "percentage") {
-                    promoDiscountAmount = (snacksTotal * promoValue) / 100;
-                } else {
-                    promoDiscountAmount = promoValue;
-                }
+                promoDiscountAmount = (promoType === "percentage") ? (snacksTotal * promoValue) / 100 : promoValue;
             } else {
-                // promo applies to total
-                if (promoType === "percentage") {
-                    promoDiscountAmount = (subtotalBeforePromo * promoValue) / 100;
-                } else {
-                    promoDiscountAmount = promoValue;
-                }
+                promoDiscountAmount = (promoType === "percentage") ? (priceAfterWeekDisc * promoValue) / 100 : promoValue;
             }
         }
 
-        // new grand total
-        grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
+        const grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
 
+        // 10. RETURN ALL VALUES
         return {
             mealCosts,
             dailyMealCost,
@@ -237,9 +398,10 @@ export default function MealPlanCalculator() {
             totalDaily,
             subtotalPlan,
             dayDiscAmount,
-            SurchargeAmount: SurchargeAmount,
-            priceAfterDayDisc: priceAfterDayDiscOnly,
-            SurchargePercentage: priceAfterDayDiscNSurcharge,
+            SurchargeAmount,
+            priceAfterDayDisc: priceAfterDayDiscOnly, // As per your naming
+            priceAfterWeekDisc: priceAfterWeekDisc, // As per your naming
+            SurchargePercentage: priceAfterDayDiscNSurcharge, // As per your naming (Total including surcharge)
             weekDiscAmount,
             totalBagFee,
             promoDiscountAmount,
@@ -252,20 +414,20 @@ export default function MealPlanCalculator() {
             savings,
             anchoredBase
         };
-    }, [
-        mealCalories,
-        numSnacks,
-        numDays,
-        numWeeks,
-        promoType,
-        promoValue,
-        promoScope,
-        lookupTable,
-        SurchargePercentage,
-        reductionPer,
-        markupPer
-    ]);
-
+    };
+    const results = useMemo(() => calculateMealPlan({
+    mealCalories,
+    numSnacks,
+    numDays,
+    numWeeks,
+    promoType,
+    promoValue,
+    promoScope,
+    lookupTable,
+    SurchargePercentage,
+    reductionPer,
+    markupPer
+}), [mealCalories, numSnacks, numDays, numWeeks, promoType, promoValue, promoScope, lookupTable, SurchargePercentage, reductionPer, markupPer]);
     const removePlan = (id) => {
         const updated = savedPlans.filter(p => p.id !== id);
         setSavedPlans(updated);
@@ -286,7 +448,7 @@ export default function MealPlanCalculator() {
                 promoValue,
                 promoScope,
                 lookupTable,
-                total: results.grandTotal.toFixed(2),
+                total: results?.grandTotal.toFixed(2),
             },
             date: new Date(),
             pricing: oldPricing
@@ -544,75 +706,75 @@ export default function MealPlanCalculator() {
                         <div className="space-y-3">
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Daily Meal Cost</span>
-                                <span className="font-mono font-bold">AED {results.dailyMealCost.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.dailyMealCost.toFixed(2)}</span>
                             </div>
                             {/* <div className="flex text-gray-400 justify-between text-sm border-b pb-2">
                                 <span>Daily Base Meal Cost</span>
-                                <span className="font-mono font-bold">AED {results.dailyBaseMealCost.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.dailyBaseMealCost.toFixed(2)}</span>
                             </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total Snack Cost</span>
-                                <span className="font-mono font-bold">AED {results.dailySnackCost.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.dailySnackCost.toFixed(2)}</span>
                             </div>
                             {/* <div className="flex text-gray-400 justify-between text-sm border-b pb-2">
                                 <span>Total Base Snack Cost</span>
-                                <span className="font-mono font-bold">AED {results.dailyBaseSnackCost.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.dailyBaseSnackCost.toFixed(2)}</span>
                             </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total Daily</span>
-                                <span className="font-mono font-bold">AED {results.totalDaily.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.totalDaily.toFixed(2)}</span>
                             </div>
                             {/* <div className="flex text-gray-400 justify-between text-sm border-b pb-2">
                                 <span>Total Base Daily</span>
-                                <span className="font-mono font-bold">AED {results.totalBaseDaily.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.totalBaseDaily.toFixed(2)}</span>
                             </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total Sub Total</span>
-                                <span className="font-mono font-bold">AED {results.subtotalPlan.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.subtotalPlan.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-gray-400 text-sm border-b pb-2">
                                 <span>Total Sub Total Base</span>
-                                <span className="font-mono font-bold">AED {results.anchoredBase.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.anchoredBase.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm border-b pb-2 text-amber-600">
                                 <span>You saved</span>
-                                <span className="font-mono font-bold">AED {results.savings.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.savings.toFixed(2)}</span>
                             </div>
                             {/* <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total with disocunt and Markup 12.5% and 25%</span>
-                                <span className="font-mono font-bold">AED {results.subtotalWithDiscountLogic.toFixed(2)}</span>
+                                <span className="font-mono font-bold">AED {results?.subtotalWithDiscountLogic.toFixed(2)}</span>
                             </div> */}
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Day Discount (Formula Logic)</span>
-                                <span>- AED {results.dayDiscAmount.toFixed(2)}</span>
+                                <span>- AED {results?.dayDiscAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Total price: After Day Disc (Formula Logic)</span>
-                                <span>- AED {results.priceAfterDayDisc.toFixed(2)}</span>
+                                <span>- AED {results?.priceAfterDayDisc.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Surcharge Amount (Formula Logic)</span>
-                                <span>- AED {results.SurchargeAmount.toFixed(2)}</span>
+                                <span>- AED {results?.SurchargeAmount?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Total price: After Surcharge (Formula Logic)</span>
-                                <span>- AED {results.SurchargePercentage.toFixed(2)}</span>
+                                <span>- AED {results?.SurchargePercentage?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
-                                <span>Week Discount ({results.weekDiscPercent}%)</span>
-                                <span>- AED {results.weekDiscAmount.toFixed(2)}</span>
+                                <span>Week Discount ({results?.weekDiscPercent}%)</span>
+                                <span>- AED {results?.weekDiscAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-blue-500">
                                 <span>Bag Fee (Total)</span>
-                                <span>+ AED {results.totalBagFee.toFixed(2)}</span>
+                                <span>+ AED {results?.totalBagFee.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Promo Discount</span>
-                                <span>- AED {results.promoDiscountAmount.toFixed(2)}</span>
+                                <span>- AED {results?.promoDiscountAmount.toFixed(2)}</span>
                             </div>
                             <div className="mt-8 p-6 bg-slate-900 text-white rounded-xl shadow-lg">
                                 <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Final Grand Total</span>
-                                <span className="text-4xl font-black text-green-400">AED {results.grandTotal.toFixed(2)}</span>
+                                <span className="text-4xl font-black text-green-400">AED {results?.grandTotal.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -717,10 +879,17 @@ export default function MealPlanCalculator() {
                     numSnacks={numSnacks}
                     numDays={numDays}
                     numWeeks={numWeeks}
-                    lookupTable={lookupTable}
+                    SurchargePercentage={SurchargePercentage}
+                    reductionPer={reductionPer}
+                    markupPer={markupPer}
                     promoType={promoType}
                     promoValue={promoValue}
                     promoScope={promoScope}
+                    oldPricing={oldPricing}
+                    snackOldPricing={snackOldPricing}
+                    results={results}
+                    lookupTable={lookupTable}
+                    calculateMealPlan={calculateMealPlan}
                 />
             </div>
         </div>
