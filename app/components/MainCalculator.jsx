@@ -9,6 +9,8 @@ export default function MealPlanCalculator() {
     const [numDays, setNumDays] = useState(5);
     const [numWeeks, setNumWeeks] = useState(4);
     const [SurchargePercentage, setSurchargePercentage] = useState(null);
+    const [reductionPer, setreductionPer] = useState(12.5);
+    const [markupPer, setmarkupPer] = useState(25);
     const [promoType, setPromoType] = useState("percentage"); // "flat" | "percentage"
     const [promoValue, setPromoValue] = useState(0);
     const [promoScope, setPromoScope] = useState("both");     // "meals", "snacks", "both"
@@ -102,7 +104,13 @@ export default function MealPlanCalculator() {
             const discount = lookupTable.mealDiscounts[index] / 100;
             return basePrice * (1 - discount);
         });
+        const baseMealCosts = mealCalories.map((kcal, index) => {
+            if (kcal === 0) return 0;
+            const basePrice = lookupTable.mealPrices[kcal] || 0;
+            return basePrice;
+        });
         const dailyMealCost = mealCosts.reduce((a, b) => a + b, 0);
+        const dailyBaseMealCost = baseMealCosts.reduce((a, b) => a + b, 0);
 
         const dailySnackCostFunc = () => {
             if (numSnacks === 0) return 0;
@@ -118,12 +126,28 @@ export default function MealPlanCalculator() {
 
             return total;
         }
+        const dailySnackBaseCostFunc = () => {
+            if (numSnacks === 0) return 0;
+
+            let total = 0;
+            const snackBase = lookupTable.mealPrices[200];
+
+            for (let i = 1; i <= numSnacks; i++) {
+                const discountedPrice = snackBase;
+                total += discountedPrice;
+            }
+
+            return total;
+        }
         const dailySnackCost = dailySnackCostFunc()
+        const dailyBaseSnackCost = dailySnackBaseCostFunc()
         const totalDaily = dailyMealCost + dailySnackCost;
+        const totalBaseDaily = dailyBaseMealCost + dailyBaseSnackCost;
 
         // day discount logic unchanged...
 
         const subtotalPlan = totalDaily * numDays * numWeeks;
+        const subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
         let dayDiscAmount = 0;
         if (numDays >= 6) {
             // VLOOKUP values from H2:I4
@@ -153,6 +177,21 @@ export default function MealPlanCalculator() {
         const priceAfterWeekDisc = priceAfterDayDisc - weekDiscAmount;
 
         const totalBagFee = (numDays * numWeeks) * lookupTable.bagFee;
+        // let subtotalWithDiscountLogic = (subtotalBasePlan - totalBagFee);
+        let subtotalWithDiscountLogic = (priceAfterDayDiscOnly);
+        const reductionCoeff = 1 - (reductionPer / 100);
+        const markupCoeff = 1 - (markupPer / 100);
+        const anchoredBase = ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff;
+        const savings = anchoredBase - priceAfterWeekDisc - totalBagFee;
+
+
+        // console.log("bag", subtotalWithDiscountLogic)
+        // subtotalWithDiscountLogic = subtotalWithDiscountLogic * (1 - 12.5 / 100);
+        // console.log("12.5", subtotalWithDiscountLogic)
+        // subtotalWithDiscountLogic += totalBagFee;
+        // console.log("bag", subtotalWithDiscountLogic)
+        // subtotalWithDiscountLogic = subtotalWithDiscountLogic * (1 + 33.33 / 100);
+        // console.log("33.33", subtotalWithDiscountLogic)
 
         // ====== PROMO DISCOUNT CALCULATION ======
 
@@ -205,6 +244,13 @@ export default function MealPlanCalculator() {
             totalBagFee,
             promoDiscountAmount,
             grandTotal,
+            subtotalWithDiscountLogic,
+            subtotalBasePlan,
+            dailyBaseMealCost,
+            dailyBaseSnackCost,
+            totalBaseDaily,
+            savings,
+            anchoredBase
         };
     }, [
         mealCalories,
@@ -215,7 +261,9 @@ export default function MealPlanCalculator() {
         promoValue,
         promoScope,
         lookupTable,
-        SurchargePercentage
+        SurchargePercentage,
+        reductionPer,
+        markupPer
     ]);
 
     const removePlan = (id) => {
@@ -465,6 +513,28 @@ export default function MealPlanCalculator() {
                                         className="border p-2 rounded w-32"
                                     />
                                 </div>
+                                <div className="flex flex-col">
+                                    <label className="text-xs font-bold text-gray-400">Markup Percentage (%)</label>
+                                    <input
+                                        type="number"
+                                        value={reductionPer}
+                                        onChange={(e) =>
+                                            setreductionPer(e.target.value)
+                                        }
+                                        className="border p-2 rounded w-32"
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="text-xs font-bold text-gray-400">Markup Coefficient (%)</label>
+                                    <input
+                                        type="number"
+                                        value={markupPer}
+                                        onChange={(e) =>
+                                            setmarkupPer(e.target.value)
+                                        }
+                                        className="border p-2 rounded w-32"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -476,18 +546,42 @@ export default function MealPlanCalculator() {
                                 <span>Daily Meal Cost</span>
                                 <span className="font-mono font-bold">AED {results.dailyMealCost.toFixed(2)}</span>
                             </div>
+                            {/* <div className="flex text-gray-400 justify-between text-sm border-b pb-2">
+                                <span>Daily Base Meal Cost</span>
+                                <span className="font-mono font-bold">AED {results.dailyBaseMealCost.toFixed(2)}</span>
+                            </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total Snack Cost</span>
                                 <span className="font-mono font-bold">AED {results.dailySnackCost.toFixed(2)}</span>
                             </div>
+                            {/* <div className="flex text-gray-400 justify-between text-sm border-b pb-2">
+                                <span>Total Base Snack Cost</span>
+                                <span className="font-mono font-bold">AED {results.dailyBaseSnackCost.toFixed(2)}</span>
+                            </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total Daily</span>
                                 <span className="font-mono font-bold">AED {results.totalDaily.toFixed(2)}</span>
                             </div>
+                            {/* <div className="flex text-gray-400 justify-between text-sm border-b pb-2">
+                                <span>Total Base Daily</span>
+                                <span className="font-mono font-bold">AED {results.totalBaseDaily.toFixed(2)}</span>
+                            </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total Sub Total</span>
                                 <span className="font-mono font-bold">AED {results.subtotalPlan.toFixed(2)}</span>
                             </div>
+                            <div className="flex justify-between text-gray-400 text-sm border-b pb-2">
+                                <span>Total Sub Total Base</span>
+                                <span className="font-mono font-bold">AED {results.anchoredBase.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm border-b pb-2 text-amber-600">
+                                <span>You saved</span>
+                                <span className="font-mono font-bold">AED {results.savings.toFixed(2)}</span>
+                            </div>
+                            {/* <div className="flex justify-between text-sm border-b pb-2">
+                                <span>Total with disocunt and Markup 12.5% and 25%</span>
+                                <span className="font-mono font-bold">AED {results.subtotalWithDiscountLogic.toFixed(2)}</span>
+                            </div> */}
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Day Discount (Formula Logic)</span>
                                 <span>- AED {results.dayDiscAmount.toFixed(2)}</span>
