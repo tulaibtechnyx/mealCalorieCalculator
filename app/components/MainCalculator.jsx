@@ -11,6 +11,7 @@ export default function MealPlanCalculator() {
     const [SurchargePercentage, setSurchargePercentage] = useState(0);
     const [reductionPer, setreductionPer] = useState(12.5);
     const [markupPer, setmarkupPer] = useState(25);
+    const [PlanBasePer, setPlanBasePer] = useState(null);
     const [promoType, setPromoType] = useState("percentage"); // "flat" | "percentage"
     const [promoValue, setPromoValue] = useState(0);
     const [promoScope, setPromoScope] = useState("both");     // "meals", "snacks", "both"
@@ -286,7 +287,8 @@ export default function MealPlanCalculator() {
             lookupTable = {},
             SurchargePercentage = 0,
             reductionPer = 0,
-            markupPer = 0
+            markupPer = 0,
+            PlanBasePer = null
         } = params;
 
         // 2. Safe access to nested lookupTable properties
@@ -331,9 +333,12 @@ export default function MealPlanCalculator() {
         // 5. TOTALS & SUBTOTALS
         const totalDaily = dailyMealCost + dailySnackCost;
         const totalBaseDaily = dailyBaseMealCost + dailyBaseSnackCost;
-        const subtotalPlan = totalDaily * numDays * numWeeks;
-        const subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
+        let subtotalPlan = totalDaily * numDays * numWeeks;
+        let subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
+        const planPercentage = 1 + (PlanBasePer || 0) / 100;
 
+        subtotalPlan = PlanBasePer ? planPercentage * subtotalPlan: subtotalPlan;
+        subtotalBasePlan = PlanBasePer ? planPercentage * subtotalBasePlan : subtotalBasePlan;
         // 6. DAY DISCOUNT LOGIC
         let dayDiscAmount = 0;
         if (numDays >= 6) {
@@ -426,8 +431,9 @@ export default function MealPlanCalculator() {
     lookupTable,
     SurchargePercentage,
     reductionPer,
-    markupPer
-}), [mealCalories, numSnacks, numDays, numWeeks, promoType, promoValue, promoScope, lookupTable, SurchargePercentage, reductionPer, markupPer]);
+    markupPer,
+    PlanBasePer
+}), [mealCalories, numSnacks, numDays, numWeeks, promoType, promoValue, promoScope, lookupTable, SurchargePercentage, reductionPer, markupPer, PlanBasePer]);
     const removePlan = (id) => {
         const updated = savedPlans.filter(p => p.id !== id);
         setSavedPlans(updated);
@@ -693,6 +699,17 @@ export default function MealPlanCalculator() {
                                         value={markupPer}
                                         onChange={(e) =>
                                             setmarkupPer(e.target.value)
+                                        }
+                                        className="border p-2 rounded w-32"
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    <label className="text-xs font-bold text-gray-400">Add Plan Based (%)</label>
+                                    <input
+                                        type="number"
+                                        value={PlanBasePer}
+                                        onChange={(e) =>
+                                            setPlanBasePer(e.target.value)
                                         }
                                         className="border p-2 rounded w-32"
                                     />
