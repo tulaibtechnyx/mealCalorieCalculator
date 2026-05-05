@@ -91,6 +91,14 @@ export default function MealPlanCalculator() {
     }, [snackOldPricing]);
 
     useEffect(() => {
+        if (numWeeks === 4) {
+            setSurchargePercentage(2);
+        } else {
+            // setSurchargePercentage(0);
+        }
+    }, [numWeeks]);
+
+    useEffect(() => {
         const saved = localStorage.getItem('meal_plan_history');
         if (saved) setSavedPlans(JSON.parse(saved));
     }, []);
@@ -337,7 +345,7 @@ export default function MealPlanCalculator() {
         let subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
         const planPercentage = 1 + (PlanBasePer || 0) / 100;
 
-        subtotalPlan = PlanBasePer ? planPercentage * subtotalPlan: subtotalPlan;
+        subtotalPlan = PlanBasePer ? planPercentage * subtotalPlan : subtotalPlan;
         subtotalBasePlan = PlanBasePer ? planPercentage * subtotalBasePlan : subtotalBasePlan;
         // 6. DAY DISCOUNT LOGIC
         let dayDiscAmount = 0;
@@ -355,8 +363,9 @@ export default function MealPlanCalculator() {
         }
 
         // 7. SURCHARGES & WEEK DISCOUNTS
-        const priceAfterDayDiscOnly = subtotalPlan - dayDiscAmount;
-        const priceAfterDayDiscNSurcharge = priceAfterDayDiscOnly * (1 + SurchargePercentage / 100);
+        const surchargeFactor = 1 + (SurchargePercentage / 100);
+        const priceAfterDayDiscOnly = (subtotalPlan - dayDiscAmount);
+        const priceAfterDayDiscNSurcharge = priceAfterDayDiscOnly * surchargeFactor;
 
         // Correcting the SurchargeAmount logic to ensure it reflects the added cost
         const SurchargeAmount = priceAfterDayDiscNSurcharge - priceAfterDayDiscOnly;
@@ -367,7 +376,8 @@ export default function MealPlanCalculator() {
 
         // 8. FEES & ANCHORED BASE (MARKUP/REDUCTION)
         const totalBagFee = (numDays * numWeeks) * bagFeePerDay;
-        const subtotalWithDiscountLogic = priceAfterDayDiscOnly;
+        // Use surcharged amount for base calculation as requested
+        const subtotalWithDiscountLogic = priceAfterDayDiscNSurcharge;
         const reductionCoeff = 1 - (reductionPer / 100);
         const markupCoeff = 1 - (markupPer / 100);
 
@@ -401,7 +411,7 @@ export default function MealPlanCalculator() {
             dailyMealCost,
             dailySnackCost,
             totalDaily,
-            subtotalPlan,
+            subtotalPlan: subtotalPlan * surchargeFactor,
             dayDiscAmount,
             SurchargeAmount,
             priceAfterDayDisc: priceAfterDayDiscOnly, // As per your naming
@@ -412,7 +422,7 @@ export default function MealPlanCalculator() {
             promoDiscountAmount,
             grandTotal,
             subtotalWithDiscountLogic,
-            subtotalBasePlan,
+            subtotalBasePlan: subtotalBasePlan * surchargeFactor,
             dailyBaseMealCost,
             dailyBaseSnackCost,
             totalBaseDaily,
@@ -421,19 +431,19 @@ export default function MealPlanCalculator() {
         };
     };
     const results = useMemo(() => calculateMealPlan({
-    mealCalories,
-    numSnacks,
-    numDays,
-    numWeeks,
-    promoType,
-    promoValue,
-    promoScope,
-    lookupTable,
-    SurchargePercentage,
-    reductionPer,
-    markupPer,
-    PlanBasePer
-}), [mealCalories, numSnacks, numDays, numWeeks, promoType, promoValue, promoScope, lookupTable, SurchargePercentage, reductionPer, markupPer, PlanBasePer]);
+        mealCalories,
+        numSnacks,
+        numDays,
+        numWeeks,
+        promoType,
+        promoValue,
+        promoScope,
+        lookupTable,
+        SurchargePercentage,
+        reductionPer,
+        markupPer,
+        PlanBasePer
+    }), [mealCalories, numSnacks, numDays, numWeeks, promoType, promoValue, promoScope, lookupTable, SurchargePercentage, reductionPer, markupPer, PlanBasePer]);
     const removePlan = (id) => {
         const updated = savedPlans.filter(p => p.id !== id);
         setSavedPlans(updated);
