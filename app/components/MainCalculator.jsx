@@ -96,21 +96,21 @@ export default function MealPlanCalculator() {
         } else {
         }
     }, [numWeeks]);
-    useEffect(() => {
-        if (lookupTable && promoValue > 0) {
-            setLookupTable({
-                ...lookupTable,
-                weekDiscounts: { 1: 0, 2: 0, 4: 0 },
-            })
-        } else {
-            if (promoValue <= 0) {
-                setLookupTable({
-                    ...lookupTable,
-                    weekDiscounts: { 1: 0, 2: 0, 4: 7.5 },
-                })
-            }
-        }
-    }, [promoValue, lookupTable]);
+    // useEffect(() => {
+    //     if (lookupTable && promoValue > 0) {
+    //         setLookupTable({
+    //             ...lookupTable,
+    //             weekDiscounts: { 1: 0, 2: 0, 4: 0 },
+    //         })
+    //     } else {
+    //         if (promoValue <= 0) {
+    //             setLookupTable({
+    //                 ...lookupTable,
+    //                 weekDiscounts: { 1: 0, 2: 0, 4: 7.5 },
+    //             })
+    //         }
+    //     }
+    // }, [promoValue, lookupTable]);
 
     useEffect(() => {
         const saved = localStorage.getItem('meal_plan_history');
