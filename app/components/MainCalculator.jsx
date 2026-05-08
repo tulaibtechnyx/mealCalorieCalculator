@@ -94,9 +94,23 @@ export default function MealPlanCalculator() {
         if (numWeeks === 4) {
             setSurchargePercentage(2);
         } else {
-            // setSurchargePercentage(0);
         }
     }, [numWeeks]);
+    useEffect(() => {
+        if (lookupTable && promoValue > 0) {
+            setLookupTable({
+                ...lookupTable,
+                weekDiscounts: { 1: 0, 2: 0, 4: 0 },
+            })
+        } else {
+            if (promoValue <= 0) {
+                setLookupTable({
+                    ...lookupTable,
+                    weekDiscounts: { 1: 0, 2: 0, 4: 7.5 },
+                })
+            }
+        }
+    }, [promoValue, lookupTable]);
 
     useEffect(() => {
         const saved = localStorage.getItem('meal_plan_history');
@@ -345,8 +359,8 @@ export default function MealPlanCalculator() {
         let subtotalBasePlan = totalBaseDaily * numDays * numWeeks;
         const planPercentage = 1 + (PlanBasePer || 0) / 100;
 
-        subtotalPlan = PlanBasePer ? planPercentage * subtotalPlan : subtotalPlan;
-        subtotalBasePlan = PlanBasePer ? planPercentage * subtotalBasePlan : subtotalBasePlan;
+        // subtotalPlan = PlanBasePer ? planPercentage * subtotalPlan : subtotalPlan;
+        // subtotalBasePlan = PlanBasePer ? planPercentage * subtotalBasePlan : subtotalBasePlan;
         // 6. DAY DISCOUNT LOGIC
         let dayDiscAmount = 0;
         if (numDays >= 6) {
@@ -386,7 +400,7 @@ export default function MealPlanCalculator() {
             ? ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff
             : 0;
 
-        const savings = anchoredBase - priceAfterWeekDisc - totalBagFee;
+        const savings = (anchoredBase - priceAfterWeekDisc - totalBagFee);
 
         // 9. PROMO DISCOUNT CALCULATION
         let promoDiscountAmount = 0;
@@ -403,7 +417,9 @@ export default function MealPlanCalculator() {
             }
         }
 
-        const grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
+        // const grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
+        const grandTotal = (priceAfterWeekDisc - promoDiscountAmount);
+        const totalWithPlanMarkup = (planPercentage * grandTotal) + totalBagFee
 
         // 10. RETURN ALL VALUES
         return {
@@ -421,6 +437,7 @@ export default function MealPlanCalculator() {
             totalBagFee,
             promoDiscountAmount,
             grandTotal,
+            totalWithPlanMarkup,
             subtotalWithDiscountLogic,
             subtotalBasePlan: subtotalBasePlan * surchargeFactor,
             dailyBaseMealCost,
@@ -756,16 +773,16 @@ export default function MealPlanCalculator() {
                                 <span className="font-mono font-bold">AED {results?.totalBaseDaily.toFixed(2)}</span>
                             </div> */}
                             <div className="flex justify-between text-sm border-b pb-2">
-                                <span>Total Sub Total</span>
+                                <span>Sub Total</span>
                                 <span className="font-mono font-bold">AED {results?.subtotalPlan.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-gray-400 text-sm border-b pb-2">
-                                <span>Total Sub Total Base</span>
-                                <span className="font-mono font-bold">AED {results?.anchoredBase.toFixed(2)}</span>
+                                <span>Sub Total Base (Markup logic not confirmed)</span>
+                                <span className="font-mono font-bold">AED {results?.anchoredBase.toFixed(0)}</span>
                             </div>
                             <div className="flex justify-between text-sm border-b pb-2 text-amber-600">
-                                <span>You saved</span>
-                                <span className="font-mono font-bold">AED {results?.savings.toFixed(2)}</span>
+                                <span>You saved (Markup logic not confirmed)</span>
+                                <span className="font-mono font-bold">AED {results?.savings.toFixed(0)}</span>
                             </div>
                             {/* <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total with disocunt and Markup 12.5% and 25%</span>
@@ -788,20 +805,24 @@ export default function MealPlanCalculator() {
                                 <span>- AED {results?.SurchargePercentage?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
-                                <span>Week Discount ({results?.weekDiscPercent}%)</span>
+                                <span>Week Discount{ promoValue ? " ( if Promo then no week Dis)":''} ({results?.weekDiscPercent}%)</span>
                                 <span>- AED {results?.weekDiscAmount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-blue-500">
-                                <span>Bag Fee (Total)</span>
-                                <span>+ AED {results?.totalBagFee.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-red-500 italic">
                                 <span>Promo Discount</span>
                                 <span>- AED {results?.promoDiscountAmount.toFixed(2)}</span>
                             </div>
+                            <div className="flex justify-between text-sm text-blue-500">
+                                <span>Bag Fee (Total)</span>
+                                <span>+ AED {results?.totalBagFee.toFixed(2)}</span>
+                            </div>
+                            <div className="mt-8 p-6 bg-slate-900 text-white rounded-xl shadow-lg">
+                                <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Grand Total Wihtout markup (W/O) BagFee</span>
+                                <span className="text-4xl font-black text-green-400">AED {results?.grandTotal.toFixed(0)}</span>
+                            </div>
                             <div className="mt-8 p-6 bg-slate-900 text-white rounded-xl shadow-lg">
                                 <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Final Grand Total</span>
-                                <span className="text-4xl font-black text-green-400">AED {results?.grandTotal.toFixed(2)}</span>
+                                <span className="text-4xl font-black text-green-400">AED {results?.totalWithPlanMarkup.toFixed(0)}</span>
                             </div>
                         </div>
                     </div>
