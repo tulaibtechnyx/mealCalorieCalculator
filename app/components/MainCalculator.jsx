@@ -197,7 +197,7 @@ export default function MealPlanCalculator() {
     //     const weekDiscPercent = lookupTable.weekDiscounts[numWeeks] / 100;
     //     const weekDiscAmount = priceAfterDayDisc * weekDiscPercent;
 
-    //     const priceAfterWeekDisc = priceAfterDayDisc - weekDiscAmount;
+    //     const totalPriceBeforeWeekDisc = priceAfterDayDisc - weekDiscAmount;
 
     //     const totalBagFee = (numDays * numWeeks) * lookupTable.bagFee;
     //     // let subtotalWithDiscountLogic = (subtotalBasePlan - totalBagFee);
@@ -205,7 +205,7 @@ export default function MealPlanCalculator() {
     //     const reductionCoeff = 1 - (reductionPer / 100);
     //     const markupCoeff = 1 - (markupPer / 100);
     //     const anchoredBase = ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff;
-    //     const savings = anchoredBase - priceAfterWeekDisc - totalBagFee;
+    //     const savings = anchoredBase - totalPriceBeforeWeekDisc - totalBagFee;
 
 
     //     // console.log("bag", subtotalWithDiscountLogic)
@@ -223,8 +223,8 @@ export default function MealPlanCalculator() {
     //     // Base amounts
     //     const mealsTotal = dailyMealCost * numDays * numWeeks;
     //     const snacksTotal = dailySnackCost * numDays * numWeeks;
-    //     const subtotalBeforePromo = priceAfterWeekDisc;
-    //     let grandTotal = priceAfterWeekDisc;
+    //     const subtotalBeforePromo = totalPriceBeforeWeekDisc;
+    //     let grandTotal = totalPriceBeforeWeekDisc;
 
     //     // compute promo discount
     //     if (promoValue > 0) {
@@ -251,7 +251,7 @@ export default function MealPlanCalculator() {
     //     }
 
     //     // new grand total
-    //     grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
+    //     grandTotal = (totalPriceBeforeWeekDisc - promoDiscountAmount) + totalBagFee;
 
     //     return {
     //         mealCosts,
@@ -385,8 +385,10 @@ export default function MealPlanCalculator() {
         const SurchargeAmount = priceAfterDayDiscNSurcharge - priceAfterDayDiscOnly;
 
         const weekDiscPercent = (weekDiscounts[numWeeks] || 0) / 100;
-        const weekDiscAmount = priceAfterDayDiscNSurcharge * weekDiscPercent;
-        const priceAfterWeekDisc = priceAfterDayDiscNSurcharge - weekDiscAmount;
+        // const weekDiscAmount = priceAfterDayDiscNSurcharge * weekDiscPercent;
+        // const totalPriceBeforeWeekDisc = priceAfterDayDiscNSurcharge - weekDiscAmount;
+        const weekDiscAmount = priceAfterDayDiscNSurcharge;
+        const totalPriceBeforeWeekDisc = priceAfterDayDiscNSurcharge;
 
         // 8. FEES & ANCHORED BASE (MARKUP/REDUCTION)
         const totalBagFee = (numDays * numWeeks) * bagFeePerDay;
@@ -396,11 +398,8 @@ export default function MealPlanCalculator() {
         const markupCoeff = 1 - (markupPer / 100);
 
         // Safety check for division by zero
-        const anchoredBase = markupCoeff !== 0
-            ? ((subtotalWithDiscountLogic * reductionCoeff) + totalBagFee) / markupCoeff
-            : 0;
+        
 
-        const savings = (anchoredBase - priceAfterWeekDisc - totalBagFee);
 
         // 9. PROMO DISCOUNT CALCULATION
         let promoDiscountAmount = 0;
@@ -413,12 +412,20 @@ export default function MealPlanCalculator() {
             } else if (promoScope === "snacks") {
                 promoDiscountAmount = (promoType === "percentage") ? (snacksTotal * promoValue) / 100 : promoValue;
             } else {
-                promoDiscountAmount = (promoType === "percentage") ? (priceAfterWeekDisc * promoValue) / 100 : promoValue;
+                promoDiscountAmount = (promoType === "percentage") ? (totalPriceBeforeWeekDisc * promoValue) / 100 : promoValue;
             }
         }
 
-        // const grandTotal = (priceAfterWeekDisc - promoDiscountAmount) + totalBagFee;
-        const grandTotal = (priceAfterWeekDisc - promoDiscountAmount);
+        const grandTotalBeforeweek = (totalPriceBeforeWeekDisc - promoDiscountAmount);
+        const priceWithWeekDiscAndPromoAmount = totalPriceBeforeWeekDisc * weekDiscPercent;
+        const priceWithWeekDiscAndPromoVal = grandTotalBeforeweek - priceWithWeekDiscAndPromoAmount;
+
+        const anchoredBase = markupCoeff !== 0
+            ? ((priceWithWeekDiscAndPromoVal * reductionCoeff) + totalBagFee) / markupCoeff
+            : 0;
+        const savings = (anchoredBase - priceWithWeekDiscAndPromoVal - totalBagFee);
+        
+        const grandTotal = priceWithWeekDiscAndPromoVal;
         const totalWithPlanMarkup = (planPercentage * grandTotal) + totalBagFee
 
         // 10. RETURN ALL VALUES
@@ -431,9 +438,9 @@ export default function MealPlanCalculator() {
             dayDiscAmount,
             SurchargeAmount,
             priceAfterDayDisc: priceAfterDayDiscOnly, // As per your naming
-            priceAfterWeekDisc: priceAfterWeekDisc, // As per your naming
+            totalPriceBeforeWeekDisc: totalPriceBeforeWeekDisc, // As per your naming
             SurchargePercentage: priceAfterDayDiscNSurcharge, // As per your naming (Total including surcharge)
-            weekDiscAmount,
+            weekDiscAmount: priceWithWeekDiscAndPromoAmount,
             totalBagFee,
             promoDiscountAmount,
             grandTotal,
@@ -447,7 +454,7 @@ export default function MealPlanCalculator() {
             anchoredBase
         };
     };
-    const results = useMemo(() => calculateMealPlan({
+    const results2 = useMemo(() => calculateMealPlan({
         mealCalories,
         numSnacks,
         numDays,
@@ -777,12 +784,12 @@ export default function MealPlanCalculator() {
                                 <span className="font-mono font-bold">AED {results?.subtotalPlan.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-gray-400 text-sm border-b pb-2">
-                                <span>Sub Total Base (Markup logic not confirmed)</span>
+                                <span>Anchor Base (Markup logic not confirmed)</span>
                                 <span className="font-mono font-bold">AED {results?.anchoredBase.toFixed(0)}</span>
                             </div>
                             <div className="flex justify-between text-sm border-b pb-2 text-amber-600">
                                 <span>You saved (Markup logic not confirmed)</span>
-                                <span className="font-mono font-bold">AED {results?.savings.toFixed(0)}</span>
+                                <span className="font-mono font-bold">AED {results?.savings.toFixed(2)}</span>
                             </div>
                             {/* <div className="flex justify-between text-sm border-b pb-2">
                                 <span>Total with disocunt and Markup 12.5% and 25%</span>
