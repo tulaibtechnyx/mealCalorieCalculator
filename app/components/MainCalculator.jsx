@@ -454,7 +454,7 @@ export default function MealPlanCalculator() {
             anchoredBase
         };
     };
-    const results2 = useMemo(() => calculateMealPlan({
+    const results = useMemo(() => calculateMealPlan({
         mealCalories,
         numSnacks,
         numDays,
